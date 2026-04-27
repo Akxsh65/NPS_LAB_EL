@@ -1,0 +1,191 @@
+# ============================================================
+# .gitignore — Deep Learning Traffic Classification Project
+# ============================================================
+
+
+# ── Dataset files (too large for git, re-downloadable) ──────
+data/
+*.h5
+*.hdf5
+*.parquet
+*.csv.gz
+
+
+# ── Tensor and model artifacts (large binary files) ─────────
+artifacts/
+*.pt
+*.pth
+*.pkl
+*.ckpt
+*.bin
+
+
+# ── Results and figures (generated, not source) ─────────────
+results/
+logs/
+runs/
+outputs/
+figures/
+
+
+# ── Python environment ───────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+
+# ── Jupyter notebooks checkpoints ───────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+profile_default/
+ipython_config.py
+
+
+# ── IDE and editor files ─────────────────────────────────────
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim / Emacs
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+
+# ── OS generated files ───────────────────────────────────────
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+
+# ── Weights and Biases (experiment tracking) ─────────────────
+wandb/
+.wandb/
+
+
+# ── TensorBoard logs ─────────────────────────────────────────
+tensorboard_logs/
+tb_logs/
+lightning_logs/
+
+
+# ── LaTeX manuscript build artifacts ─────────────────────────
+manuscript/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lot
+*.lof
+*.idx
+*.ilg
+*.ind
+*.nav
+*.snm
+*.vrb
+
+
+# ── Miscellaneous ────────────────────────────────────────────
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+.coverage
+htmlcov/
+profile_output/
+*.prof
+
+
+# ── Environment variable files (never commit secrets) ────────
+.env
+.env.local
+.env.*.local
+secrets.txt
+api_keys.txt
+
+
+# ============================================================
+# What IS committed to git (everything not listed above):
+#
+#   run_phase1.py               master orchestration script
+#   config.py                   configuration constants
+#   dataset_loader.py           data ingestion module
+#   feature_engineering.py      normalization transforms
+#   dataset.py                  PyTorch Dataset classes
+#   validate_pipeline.py        validation suite
+#   requirements.txt            dependencies
+#   README.md                   this documentation
+#   .gitignore                  this file
+#
+#   phase2/models.py            (when created)
+#   phase2/train.py             (when created)
+#   phase3/obfuscator.py        (when created)
+#   phase4/evaluate.py          (when created)
+#   phase4/pareto.py            (when created)
+# ============================================================

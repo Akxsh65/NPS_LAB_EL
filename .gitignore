@@ -1,0 +1,89 @@
+# ============================================================
+# Root .gitignore for NPS_LAB_EL
+# Keeps large datasets/artifacts out of GitHub
+# ============================================================
+
+# ---- Large dataset/cache directories ----
+data/
+**/data/
+dataset_cache/
+*.h5
+*.hdf5
+*.parquet
+*.csv.gz
+*.npz
+*.npy
+
+# ---- Large model/tensor artifacts ----
+artifacts/
+**/artifacts/
+checkpoints/
+**/checkpoints/
+models_saved/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+*.pkl
+*.joblib
+
+# ---- Experiment outputs/logs ----
+logs/
+**/logs/
+runs/
+outputs/
+results/
+figures/
+wandb/
+.wandb/
+tensorboard_logs/
+tb_logs/
+lightning_logs/
+events.out.tfevents*
+
+# ---- Python virtual env/build/cache ----
+venv/
+.venv/
+env/
+.env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- IDE/editor ----
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# ---- OS files ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ---- Secrets / local env ----
+.env
+.env.local
+.env.*.local
+secrets.txt
+api_keys.txt
+

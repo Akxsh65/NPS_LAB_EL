@@ -200,6 +200,7 @@ def run_training(cfg: TrainConfig) -> None:
     scheduler = CosineAnnealingLR(optimizer, T_max=cfg.t_max, eta_min=cfg.min_lr)
     scaler = GradScaler(enabled=(device.type == "cuda"))
 
+    best_val_loss = float("inf")
     best_val_acc = -1.0
     epochs_without_improve = 0
     history = []
@@ -236,7 +237,8 @@ def run_training(cfg: TrainConfig) -> None:
             f"val_loss={val_loss:.4f} val_acc={val_acc:.4f}"
         )
 
-        if val_acc > best_val_acc:
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
             best_val_acc = val_acc
             epochs_without_improve = 0
             torch.save(
@@ -244,23 +246,33 @@ def run_training(cfg: TrainConfig) -> None:
                     "model_name": cfg.model,
                     "num_classes": num_classes,
                     "state_dict": model.state_dict(),
+                    "best_val_loss": best_val_loss,
                     "best_val_acc": best_val_acc,
                     "epoch": epoch,
                 },
                 ckpt_path,
             )
-            print(f"  Saved new best checkpoint -> {ckpt_path}")
+            print(f"  Saved new best checkpoint (val_loss improved) -> {ckpt_path}")
         else:
             epochs_without_improve += 1
             if epochs_without_improve >= cfg.patience:
                 print(f"Early stopping triggered at epoch {epoch}.")
                 break
 
+    if os.path.exists(ckpt_path):
+        best_ckpt = torch.load(ckpt_path, map_location=device)
+        model.load_state_dict(best_ckpt["state_dict"])
+        print(
+            f"Restored best checkpoint from epoch {best_ckpt.get('epoch', 'unknown')} "
+            f"(val_loss={best_ckpt.get('best_val_loss', float('nan')):.4f})."
+        )
+
     save_metrics_csv(log_csv_path, history)
     with open(log_json_path, "w", encoding="utf-8") as f:
         json.dump(asdict(cfg), f, indent=2)
 
-    print(f"Best val acc: {best_val_acc:.4f}")
+    print(f"Best val loss: {best_val_loss:.4f}")
+    print(f"Best val acc : {best_val_acc:.4f}")
     print(f"History log: {log_csv_path}")
     print(f"Config log : {log_json_path}")
 

@@ -21,13 +21,13 @@ class CNNBiLSTMClassifier(nn.Module):
         super().__init__()
 
         self.conv = nn.Sequential(
-            nn.Conv1d(in_channels, conv_channels, kernel_size=3, padding=1),
+            nn.Conv1d(in_channels, conv_channels, kernel_size=5, padding=2),
             nn.BatchNorm1d(conv_channels),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.MaxPool1d(kernel_size=2),
             nn.Conv1d(conv_channels, conv_channels * 2, kernel_size=3, padding=1),
             nn.BatchNorm1d(conv_channels * 2),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.MaxPool1d(kernel_size=2),
         )
 

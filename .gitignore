@@ -34,6 +34,7 @@ models_saved/
 !phase1/artifacts/
 !phase1/artifacts/train_tensors.pt
 !phase1/artifacts/val_tensors.pt
+!phase1/artifacts/test_tensors.pt
 
 # ---- Experiment outputs/logs ----
 logs/

@@ -23,6 +23,7 @@ artifacts/
 !artifacts/
 !artifacts/train_tensors.pt
 !artifacts/val_tensors.pt
+!artifacts/test_tensors.pt
 
 
 # ── Results and figures (generated, not source) ─────────────

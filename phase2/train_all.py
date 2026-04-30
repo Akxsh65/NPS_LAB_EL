@@ -20,6 +20,9 @@ def main() -> None:
     parser.add_argument("--weight-decay", type=float, default=1e-2)
     parser.add_argument("--min-lr", type=float, default=1e-6)
     parser.add_argument("--amp-dtype", type=str, default="bf16", choices=["bf16", "fp16"])
+    parser.add_argument("--label-smoothing", type=float, default=0.05)
+    parser.add_argument("--max-grad-norm", type=float, default=1.0)
+    parser.add_argument("--monitor-metric", type=str, default="val_acc", choices=["val_acc", "val_loss"])
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -39,6 +42,9 @@ def main() -> None:
         t_max=args.epochs,
         min_lr=args.min_lr,
         amp_dtype=args.amp_dtype,
+        label_smoothing=args.label_smoothing,
+        max_grad_norm=args.max_grad_norm,
+        monitor_metric=args.monitor_metric,
         seed=args.seed,
     )
 

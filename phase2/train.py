@@ -44,6 +44,9 @@ class TrainConfig:
     t_max: int = 60
     min_lr: float = 1e-6
     amp_dtype: str = "bf16"
+    label_smoothing: float = 0.05
+    max_grad_norm: float = 1.0
+    monitor_metric: str = "val_acc"
     seed: int = 42
 
 
@@ -112,6 +115,7 @@ def train_one_epoch(
     scaler: GradScaler,
     device: torch.device,
     amp_dtype: torch.dtype,
+    max_grad_norm: float,
 ) -> Tuple[float, float]:
     model.train()
     running_loss = 0.0
@@ -130,10 +134,15 @@ def train_one_epoch(
 
         if device.type == "cuda":
             scaler.scale(loss).backward()
+            if max_grad_norm > 0:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             scaler.step(optimizer)
             scaler.update()
         else:
             loss.backward()
+            if max_grad_norm > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             optimizer.step()
 
         running_loss += loss.item() * x.size(0)
@@ -195,7 +204,7 @@ def run_training(cfg: TrainConfig) -> None:
     model = build_model(cfg.model, num_classes=num_classes).to(device)
 
     class_weights = compute_class_weights(cfg.train_pt, num_classes=num_classes).to(device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=cfg.label_smoothing)
     optimizer = AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=cfg.t_max, eta_min=cfg.min_lr)
     scaler = GradScaler(enabled=(device.type == "cuda"))
@@ -205,17 +214,22 @@ def run_training(cfg: TrainConfig) -> None:
     epochs_without_improve = 0
     history = []
 
-    ckpt_path = os.path.join(cfg.out_dir, f"{cfg.model}_best.pt")
+    ckpt_acc_path = os.path.join(cfg.out_dir, f"{cfg.model}_best_acc.pt")
+    ckpt_loss_path = os.path.join(cfg.out_dir, f"{cfg.model}_best_loss.pt")
     log_json_path = os.path.join(cfg.out_dir, f"{cfg.model}_config.json")
     log_csv_path = os.path.join(cfg.out_dir, f"{cfg.model}_history.csv")
 
     print(f"Device: {device}")
     print(f"Model: {cfg.model}, classes: {num_classes}")
     print(f"Train batches: {len(train_loader)}, Val batches: {len(val_loader)}")
+    print(
+        f"Monitor: {cfg.monitor_metric} | label_smoothing={cfg.label_smoothing} "
+        f"| max_grad_norm={cfg.max_grad_norm}"
+    )
 
     for epoch in range(1, cfg.epochs + 1):
         train_loss, train_acc = train_one_epoch(
-            model, train_loader, optimizer, criterion, scaler, device, amp_dtype
+            model, train_loader, optimizer, criterion, scaler, device, amp_dtype, cfg.max_grad_norm
         )
         val_loss, val_acc = evaluate(model, val_loader, criterion, device, amp_dtype)
         scheduler.step()
@@ -237,34 +251,56 @@ def run_training(cfg: TrainConfig) -> None:
             f"val_loss={val_loss:.4f} val_acc={val_acc:.4f}"
         )
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        improved_acc = val_acc > best_val_acc
+        improved_loss = val_loss < best_val_loss
+
+        if improved_acc:
             best_val_acc = val_acc
-            epochs_without_improve = 0
+            torch.save(
+                {
+                    "model_name": cfg.model,
+                    "num_classes": num_classes,
+                    "state_dict": model.state_dict(),
+                    "best_val_loss": val_loss,
+                    "best_val_acc": best_val_acc,
+                    "epoch": epoch,
+                },
+                ckpt_acc_path,
+            )
+            print(f"  Saved new best accuracy checkpoint -> {ckpt_acc_path}")
+
+        if improved_loss:
+            best_val_loss = val_loss
             torch.save(
                 {
                     "model_name": cfg.model,
                     "num_classes": num_classes,
                     "state_dict": model.state_dict(),
                     "best_val_loss": best_val_loss,
-                    "best_val_acc": best_val_acc,
+                    "best_val_acc": val_acc,
                     "epoch": epoch,
                 },
-                ckpt_path,
+                ckpt_loss_path,
             )
-            print(f"  Saved new best checkpoint (val_loss improved) -> {ckpt_path}")
+            print(f"  Saved new best loss checkpoint -> {ckpt_loss_path}")
+
+        monitor_improved = improved_acc if cfg.monitor_metric == "val_acc" else improved_loss
+        if monitor_improved:
+            epochs_without_improve = 0
         else:
             epochs_without_improve += 1
             if epochs_without_improve >= cfg.patience:
                 print(f"Early stopping triggered at epoch {epoch}.")
                 break
 
-    if os.path.exists(ckpt_path):
-        best_ckpt = torch.load(ckpt_path, map_location=device)
+    restore_path = ckpt_acc_path if cfg.monitor_metric == "val_acc" else ckpt_loss_path
+    if os.path.exists(restore_path):
+        best_ckpt = torch.load(restore_path, map_location=device)
         model.load_state_dict(best_ckpt["state_dict"])
         print(
             f"Restored best checkpoint from epoch {best_ckpt.get('epoch', 'unknown')} "
-            f"(val_loss={best_ckpt.get('best_val_loss', float('nan')):.4f})."
+            f"(val_loss={best_ckpt.get('best_val_loss', float('nan')):.4f}, "
+            f"val_acc={best_ckpt.get('best_val_acc', float('nan')):.4f})."
         )
 
     save_metrics_csv(log_csv_path, history)
@@ -273,6 +309,8 @@ def run_training(cfg: TrainConfig) -> None:
 
     print(f"Best val loss: {best_val_loss:.4f}")
     print(f"Best val acc : {best_val_acc:.4f}")
+    print(f"Best loss ckpt: {ckpt_loss_path}")
+    print(f"Best acc  ckpt: {ckpt_acc_path}")
     print(f"History log: {log_csv_path}")
     print(f"Config log : {log_json_path}")
 
@@ -295,6 +333,9 @@ def parse_args() -> TrainConfig:
     parser.add_argument("--t-max", type=int, default=60)
     parser.add_argument("--min-lr", type=float, default=1e-6)
     parser.add_argument("--amp-dtype", type=str, default="bf16", choices=["bf16", "fp16"])
+    parser.add_argument("--label-smoothing", type=float, default=0.05)
+    parser.add_argument("--max-grad-norm", type=float, default=1.0)
+    parser.add_argument("--monitor-metric", type=str, default="val_acc", choices=["val_acc", "val_loss"])
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -313,6 +354,9 @@ def parse_args() -> TrainConfig:
         t_max=args.t_max,
         min_lr=args.min_lr,
         amp_dtype=args.amp_dtype,
+        label_smoothing=args.label_smoothing,
+        max_grad_norm=args.max_grad_norm,
+        monitor_metric=args.monitor_metric,
         seed=args.seed,
     )
 

@@ -15,6 +15,9 @@ def main() -> None:
     parser.add_argument("--patience", type=int, default=6)
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--amp-dtype", default="bf16", choices=["bf16", "fp16"])
+    parser.add_argument("--label-smoothing", type=float, default=0.05)
+    parser.add_argument("--max-grad-norm", type=float, default=1.0)
+    parser.add_argument("--monitor-metric", type=str, default="val_acc", choices=["val_acc", "val_loss"])
     parser.add_argument("--learning-rates", type=float, nargs="+", default=[1e-3, 3e-4, 1e-4])
     parser.add_argument("--weight-decays", type=float, nargs="+", default=[1e-2, 1e-3])
     parser.add_argument("--batch-sizes", type=int, nargs="+", default=[512, 1024, 2048])
@@ -39,6 +42,9 @@ def main() -> None:
             weight_decay=wd,
             t_max=args.epochs,
             amp_dtype=args.amp_dtype,
+            label_smoothing=args.label_smoothing,
+            max_grad_norm=args.max_grad_norm,
+            monitor_metric=args.monitor_metric,
         )
         print(f"\n=== Sweep run {run_idx}: bs={bs}, lr={lr}, wd={wd} ===")
         run_training(cfg)

@@ -19,6 +19,11 @@ artifacts/
 *.ckpt
 *.bin
 
+# Required by phase2 training scripts when cloning remotely.
+!artifacts/
+!artifacts/train_tensors.pt
+!artifacts/val_tensors.pt
+
 
 # ── Results and figures (generated, not source) ─────────────
 results/

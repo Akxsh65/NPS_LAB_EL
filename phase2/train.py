@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from torch.amp import GradScaler, autocast
 from torch.optim import AdamW
-from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -48,6 +48,12 @@ class TrainConfig:
     max_grad_norm: float = 1.0
     monitor_metric: str = "val_acc"
     seed: int = 42
+    warmup_epochs: int = 0
+    d_model: int = 128
+    nhead: int = 8
+    num_layers: int = 4
+    ff_dim: int = 256
+    dropout: float = 0.2
 
 
 def set_seed(seed: int) -> None:
@@ -201,12 +207,37 @@ def run_training(cfg: TrainConfig) -> None:
     num_classes = infer_num_classes(cfg.train_pt)
 
     train_loader, val_loader = build_loaders(cfg)
-    model = build_model(cfg.model, num_classes=num_classes).to(device)
+    model = build_model(
+        cfg.model,
+        num_classes=num_classes,
+        d_model=cfg.d_model,
+        nhead=cfg.nhead,
+        num_layers=cfg.num_layers,
+        ff_dim=cfg.ff_dim,
+        dropout=cfg.dropout,
+    ).to(device)
 
     class_weights = compute_class_weights(cfg.train_pt, num_classes=num_classes).to(device)
     criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=cfg.label_smoothing)
     optimizer = AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-    scheduler = CosineAnnealingLR(optimizer, T_max=cfg.t_max, eta_min=cfg.min_lr)
+    if cfg.warmup_epochs > 0:
+        warmup = LinearLR(
+            optimizer,
+            start_factor=0.1,
+            total_iters=cfg.warmup_epochs,
+        )
+        cosine = CosineAnnealingLR(
+            optimizer,
+            T_max=max(1, cfg.t_max - cfg.warmup_epochs),
+            eta_min=cfg.min_lr,
+        )
+        scheduler = SequentialLR(
+            optimizer,
+            schedulers=[warmup, cosine],
+            milestones=[cfg.warmup_epochs],
+        )
+    else:
+        scheduler = CosineAnnealingLR(optimizer, T_max=cfg.t_max, eta_min=cfg.min_lr)
     scaler = GradScaler(enabled=(device.type == "cuda"))
 
     best_val_loss = float("inf")
@@ -317,7 +348,12 @@ def run_training(cfg: TrainConfig) -> None:
 
 def parse_args() -> TrainConfig:
     parser = argparse.ArgumentParser(description="Phase 2 training entrypoint")
-    parser.add_argument("--model", type=str, required=True, choices=["cnn_bilstm", "transformer"])
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        choices=["cnn_bilstm", "transformer", "transformer_masked"],
+    )
     parser.add_argument("--train-pt", type=str, default="../phase1/artifacts/train_tensors.pt")
     parser.add_argument("--val-pt", type=str, default="../phase1/artifacts/val_tensors.pt")
     parser.add_argument("--out-dir", type=str, default="./artifacts")
@@ -337,6 +373,12 @@ def parse_args() -> TrainConfig:
     parser.add_argument("--max-grad-norm", type=float, default=1.0)
     parser.add_argument("--monitor-metric", type=str, default="val_acc", choices=["val_acc", "val_loss"])
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--warmup-epochs", type=int, default=0)
+    parser.add_argument("--d-model", type=int, default=128)
+    parser.add_argument("--nhead", type=int, default=8)
+    parser.add_argument("--num-layers", type=int, default=4)
+    parser.add_argument("--ff-dim", type=int, default=256)
+    parser.add_argument("--dropout", type=float, default=0.2)
     args = parser.parse_args()
 
     return TrainConfig(
@@ -358,6 +400,12 @@ def parse_args() -> TrainConfig:
         max_grad_norm=args.max_grad_norm,
         monitor_metric=args.monitor_metric,
         seed=args.seed,
+        warmup_epochs=args.warmup_epochs,
+        d_model=args.d_model,
+        nhead=args.nhead,
+        num_layers=args.num_layers,
+        ff_dim=args.ff_dim,
+        dropout=args.dropout,
     )
 
 

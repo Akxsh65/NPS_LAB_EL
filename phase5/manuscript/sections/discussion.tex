@@ -1,0 +1,35 @@
+% !TeX root = ../main.tex
+\section{Discussion}
+\label{sec:discussion}
+
+\textbf{Choosing an operating point.}
+No single metric captures deployability. \emph{jitter\_high} formally lies on the
+bandwidth--accuracy Pareto frontier but imposes 221\,ms mean latency---unacceptable
+for interactive QUIC. MTU padding maximizes privacy but roughly quadruples bytes
+sent---infeasible for backbone operators. \emph{jitter\_low} occupies a sweet spot:
+statistically distinguishable from baseline yet only 1.7 macro-F1 points lower, with
+11\,ms latency and no bandwidth penalty. We recommend it as the default proxy policy
+when bandwidth is constrained; stronger jitter tiers suit delay-tolerant bulk flows.
+
+\textbf{Transformer vs.\ BiLSTM.}
+Global attention explains higher robustness to timing perturbation: distant packets
+remain correlated even when local IPT order is noised. BiLSTM's sequential inductive
+bias amplifies jitter effects (\emph{jitter\_high} gap $\approx$18.7 percentage
+points accuracy). For padding-only defenses the ranking reverses---BiLSTM slightly
+wins on \emph{linear128}---so defender--attacker co-design matters. Reporting a single
+``best architecture'' without specifying defense is misleading.
+
+\textbf{Limitations.}
+(i) Attackers are not retrained on obfuscated data---an adaptive adversary would
+partially recover accuracy. (ii) Single-network, single-month evaluation; seasonal
+drift and cross-ASN generalization are unverified. (iii) Deterministic obfuscation is
+predictable; adversaries who model the proxy transform may craft robust features.
+(iv) Class labels in per-class reports are numeric IDs; mapping to application names
+requires the released label encoder.
+
+\textbf{Future work.}
+Adaptive attacker retraining, composable stochastic defenses, integration with QUIC
+PADDING frames and DATagram coalescing, and live testbed validation on a QUIC proxy
+(MASQUE/Oblivious HTTP) are natural extensions.
+
+%==============================================================================

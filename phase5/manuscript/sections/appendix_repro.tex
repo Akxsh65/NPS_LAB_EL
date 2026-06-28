@@ -1,0 +1,87 @@
+% !TeX root = ../main.tex
+\section{Reproducibility}
+\label{app:repro}
+
+This appendix lists artifacts, evaluation commands, and environment details for
+reproducing the numbers cited in Section~\ref{sec:results}. A machine-readable
+checklist is maintained in \texttt{phase5/REPRODUCIBILITY.md}.
+
+\subsection{Dataset and splits}
+
+We use CESNET-QUIC22-XS~\cite{cesnet_quic22}: QUIC flows collected on a national
+research-and-education backbone. Training uses calendar week W-2022-44; testing uses
+the subsequent week W-2022-45 (49{,}305 flows, 64 application classes after filtering
+classes with fewer than 200 training samples). Each flow is a $(3,30)$ tensor of IPT,
+direction, and normalized packet size.
+
+\subsection{Checkpoints and artifacts}
+
+Table~\ref{tab:repro} summarizes primary files. Obfuscated tensors are stored as
+\path{phase3/artifacts/obfuscated_<policy>.pt}; overhead is logged in
+\path{phase3/artifacts/obfuscation_manifest.json}.
+
+\begin{table}[t]
+  \centering
+  \caption{Key reproducibility artifacts.}
+  \label{tab:repro}
+  \tiny
+  \setlength{\tabcolsep}{2pt}
+  \renewcommand{\arraystretch}{1.12}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.22\columnwidth}>{\raggedright\arraybackslash}p{0.74\columnwidth}@{}}
+    \toprule
+    \textbf{Item} & \textbf{Relative path} \\
+    \midrule
+    Test tensors & \texttt{phase1/artifacts/test\_tensors.pt} \\
+    Transf.\ ckpt & \texttt{phase2/artifacts/transformer\_production.pt} \\
+    BiLSTM ckpt & \texttt{phase2/artifacts/cnn\_bilstm\_best.pt} \\
+    Obfuscated & \texttt{phase3/artifacts/obfuscated\_*.pt} \\
+    Results CSV & \texttt{phase4/results/accuracy\_results.csv} \\
+    Bootstrap CIs & \texttt{phase4/bootstrap\_ci.csv} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Evaluation commands}
+
+\textbf{Tier A/B (Transformer sweep):}
+\begin{center}
+\fbox{%
+  \begin{minipage}{0.94\columnwidth}
+  \scriptsize\ttfamily\raggedright
+  cd phase4\par
+  python run\_experiments.py\par
+  \hspace{1em}--device cuda\par
+  \hspace{1em}--checkpoint\par
+  \hspace{2em}../phase2/artifacts/\par
+  \hspace{2em}transformer\_production.pt
+  \end{minipage}}
+\end{center}
+
+\textbf{Tier C (bootstrap / ablation / arch.):}
+\begin{center}
+\fbox{%
+  \begin{minipage}{0.94\columnwidth}
+  \scriptsize\ttfamily\raggedright
+  python run\_tier\_c.py --all\par
+  \hspace{1em}--device cuda\par
+  \hspace{1em}--checkpoint\par
+  \hspace{2em}../phase2/artifacts/\par
+  \hspace{2em}transformer\_production.pt\par
+  python run\_tier\_c.py --bilstm\par
+  \hspace{1em}--compare-architectures\par
+  \hspace{1em}--device cuda\par
+  \hspace{1em}--bilstm-checkpoint\par
+  \hspace{2em}../phase2/artifacts/\par
+  \hspace{2em}cnn\_bilstm\_best.pt
+  \end{minipage}}
+\end{center}
+
+Re-running \texttt{run\_tier\_c.py --all} regenerates bootstrap CIs, paired tests, and
+channel-ablation tables referenced in Section~\ref{sec:results}.
+
+\subsection{Environment and ethics}
+
+Experiments were run with pinned dependencies in \texttt{phase4/requirements.txt}.
+CESNET-QUIC22 is distributed under the Zenodo terms cited in~\cite{cesnet_quic22};
+we use only flow metadata (sizes, directions, timing) and application labels---no
+payload content is accessed or stored in our pipeline.

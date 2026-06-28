@@ -1,0 +1,104 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{cesnet_quic22}
+\citation{wright2009,anderson2016}
+\citation{wang2017,rezaei2019,traffic_survey,transformer_traffic,vaswani2017}
+\citation{cesnet_quic22,ring2019}
+\citation{rfc9001,dyer2012}
+\citation{walkie_talkie,hayes2016}
+\citation{shusterman2021}
+\citation{efron1993,mcnemar1947}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:intro}{{I}{1}{Introduction}{section.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{1}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{II}{1}{Related Work}{section.2}{}}
+\citation{rfc9000}
+\citation{cesnet_quic22}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Fixed-length flow representation fed to attack models. Channel~0 (IPT) is z-scored; channel~1 is direction; channel~2 is packet size normalized by MTU.}}{2}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:tensor}{{1}{2}{Fixed-length flow representation fed to attack models. Channel~0 (IPT) is z-scored; channel~1 is direction; channel~2 is packet size normalized by MTU}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Threat Model and Assumptions}{2}{section.3}\protected@file@percent }
+\newlabel{sec:threat}{{III}{2}{Threat Model and Assumptions}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Methodology}{2}{section.4}\protected@file@percent }
+\newlabel{sec:methods}{{IV}{2}{Methodology}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Dataset and preprocessing}{2}{subsection.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Reproducible four-phase pipeline. Attack weights are frozen before defense evaluation.}}{2}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:pipeline}{{2}{2}{Reproducible four-phase pipeline. Attack weights are frozen before defense evaluation}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}End-to-end pipeline}{2}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Attack models}{2}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Obfuscation policies}{2}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Metrics and statistics}{2}{subsection.4.5}\protected@file@percent }
+\citation{efron1993}
+\citation{mcnemar1947}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Deterministic obfuscation on flow metadata (schematic). Jitter shifts inter-packet times for indices $>0$; linear-128 rounds sizes upward; MTU pads every packet to 1500\,B. Index~0 IPT is never jittered (CESNET convention).}}{3}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:obfuscation}{{3}{3}{Deterministic obfuscation on flow metadata (schematic). Jitter shifts inter-packet times for indices $>0$; linear-128 rounds sizes upward; MTU pads every packet to 1500\,B. Index~0 IPT is never jittered (CESNET convention)}{figure.caption.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Transformer test results: macro F1 (accuracy), privacy loss, and overhead.}}{3}{table.caption.4}\protected@file@percent }
+\newlabel{tab:main_results}{{I}{3}{Transformer test results: macro F1 (accuracy), privacy loss, and overhead}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Results}{3}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{V}{3}{Results}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Overall privacy--cost tradeoff}{3}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Macro F1 by defense setting (Transformer, test week). Horizontal line: chance level ($1/64$). Star marks \emph  {jitter\_low}.}}{3}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:macro_f1}{{4}{3}{Macro F1 by defense setting (Transformer, test week). Horizontal line: chance level ($1/64$). Star marks \emph {jitter\_low}}{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Latency overhead vs.\ accuracy (practical view, MTU excluded).}}{3}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:pareto_lat}{{5}{3}{Latency overhead vs.\ accuracy (practical view, MTU excluded)}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Pareto frontiers}{3}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Statistical significance of \emph  {jitter\_low}}{3}{subsection.5.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Bandwidth overhead vs.\ accuracy (practical view). Jitter tiers overlap at 0\% bandwidth.}}{4}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:pareto_bw}{{6}{4}{Bandwidth overhead vs.\ accuracy (practical view). Jitter tiers overlap at 0\% bandwidth}{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Top-five settings under combined privacy--cost ranking.}}{4}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:dual_metric}{{7}{4}{Top-five settings under combined privacy--cost ranking}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Architecture comparison}{4}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Channel ablation}{4}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Per-class vulnerability}{4}{subsection.5.6}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Bootstrap 95\% CIs for selected settings (Transformer).}}{4}{table.caption.9}\protected@file@percent }
+\newlabel{tab:bootstrap}{{II}{4}{Bootstrap 95\% CIs for selected settings (Transformer)}{table.caption.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Architecture comparison on test data (accuracy / macro F1, \%).}}{4}{table.caption.10}\protected@file@percent }
+\newlabel{tab:arch}{{III}{4}{Architecture comparison on test data (accuracy / macro F1, \%)}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Discussion}{4}{section.6}\protected@file@percent }
+\newlabel{sec:discussion}{{VI}{4}{Discussion}{section.6}{}}
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{cesnet_quic22}{1}
+\bibcite{wright2009}{2}
+\bibcite{anderson2016}{3}
+\bibcite{wang2017}{4}
+\bibcite{rezaei2019}{5}
+\bibcite{traffic_survey}{6}
+\bibcite{transformer_traffic}{7}
+\bibcite{vaswani2017}{8}
+\bibcite{ring2019}{9}
+\bibcite{rfc9001}{10}
+\bibcite{dyer2012}{11}
+\bibcite{walkie_talkie}{12}
+\bibcite{hayes2016}{13}
+\bibcite{shusterman2021}{14}
+\bibcite{efron1993}{15}
+\bibcite{mcnemar1947}{16}
+\bibcite{rfc9000}{17}
+\citation{cesnet_quic22}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Transformer vs.\ CNN-BiLSTM accuracy across defense settings.}}{5}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:arch}{{8}{5}{Transformer vs.\ CNN-BiLSTM accuracy across defense settings}{figure.caption.11}{}}
+\newlabel{fig:confusion_base}{{9a}{5}{Baseline}{figure.caption.12}{}}
+\newlabel{sub@fig:confusion_base}{{a}{5}{Baseline}{figure.caption.12}{}}
+\newlabel{fig:confusion_jlow}{{9b}{5}{\emph {jitter\_low}}{figure.caption.12}{}}
+\newlabel{sub@fig:confusion_jlow}{{b}{5}{\emph {jitter\_low}}{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Confusion matrices (top-20 classes inset). \emph  {jitter\_low} preserves structure with modest spread.}}{5}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:confusion}{{9}{5}{Confusion matrices (top-20 classes inset). \emph {jitter\_low} preserves structure with modest spread}{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Conclusion}{5}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion}{{VII}{5}{Conclusion}{section.7}{}}
+\@writefile{toc}{\contentsline {section}{References}{5}{section*.14}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Channel ablation (Transformer accuracy, test set).}}{5}{table.caption.13}\protected@file@percent }
+\newlabel{tab:ablation}{{IV}{5}{Channel ablation (Transformer accuracy, test set)}{table.caption.13}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Reproducibility}{5}{section*.15}\protected@file@percent }
+\newlabel{app:repro}{{A}{5}{\appendixname \nobreakspace \thesectiondis \\* Reproducibility}{section*.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {A-A}}Dataset and splits}{5}{subsection.Appendix.A.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {A-B}}Checkpoints and artifacts}{5}{subsection.Appendix.A.2}\protected@file@percent }
+\citation{cesnet_quic22}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Key reproducibility artifacts.}}{6}{table.caption.16}\protected@file@percent }
+\newlabel{tab:repro}{{V}{6}{Key reproducibility artifacts}{table.caption.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {A-C}}Evaluation commands}{6}{subsection.Appendix.A.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {A-D}}Environment and ethics}{6}{subsection.Appendix.A.4}\protected@file@percent }
+\gdef \@abspage@last{6}

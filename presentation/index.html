@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUIC Metadata Privacy — Project Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-icon">🛡</span>
+      <div>
+        <strong>QUIC Metadata Privacy</strong>
+        <small>Attack · Defense · Evaluation</small>
+      </div>
+    </div>
+    <span id="js-status" class="js-status">Loading…</span>
+    <button type="button" id="present-mode" class="btn-present" title="Larger text for projector">Present</button>
+    <nav class="nav">
+      <a class="nav-link active" href="#hero">Overview</a>
+      <a class="nav-link" href="#problem">Problem</a>
+      <a class="nav-link" href="#pipeline">Pipeline</a>
+      <a class="nav-link" href="#simulation">Simulation</a>
+      <a class="nav-link" href="#defenses">Defenses</a>
+      <a class="nav-link" href="#results">Results</a>
+    </nav>
+  </header>
+
+  <div id="js-error" class="js-error" hidden></div>
+
+  <main>
+    <!-- HERO -->
+    <section id="hero" class="hero section">
+      <div class="hero-content">
+        <p class="eyebrow">NPS LAB EL</p>
+        <h1>Can encrypted QUIC traffic still reveal <span class="gradient-text">which app you use</span>?</h1>
+        <p class="lead">
+          Payloads are encrypted, but packet <em>sizes</em>, <em>directions</em>, and <em>inter-packet times</em>
+          remain visible. We train deep learning classifiers on backbone traces, then measure how
+          deterministic obfuscation (jitter, padding) trades privacy for bandwidth and latency cost.
+        </p>
+        <div id="hero-stats" class="stat-grid"></div>
+        <div class="hero-actions">
+          <a href="#simulation" class="btn-primary">Try live simulation</a>
+          <a href="#results" class="btn-secondary">View results</a>
+          <button type="button" id="demo-compare" class="btn-ghost">Quick compare: Clean → jitter_low → MTU</button>
+        </div>
+      </div>
+      <div class="hero-visual glass">
+        <div class="tensor-demo">
+          <p class="tensor-title">Flow tensor (3 × 30 packets)</p>
+          <div class="tensor-channels">
+            <div class="channel"><span>IPT</span><div class="channel-bars ipt"></div></div>
+            <div class="channel"><span>DIR</span><div class="channel-bars dir"></div></div>
+            <div class="channel"><span>SIZE</span><div class="channel-bars size"></div></div>
+          </div>
+          <p class="tensor-caption">What the attacker learns — no payload inspection</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM -->
+    <section id="problem" class="section">
+      <div class="section-head">
+        <h2>The privacy problem</h2>
+        <p>QUIC hides content, not metadata. A passive observer can still fingerprint applications.</p>
+      </div>
+      <div id="attack-diagram" class="attack-flow glass"></div>
+      <div class="problem-grid">
+        <article class="glass card">
+          <h3>🔍 The attack</h3>
+          <p>A Transformer encoder reads the first 30 packets of each flow as a sequence of timing + size features and predicts one of <strong>64 application classes</strong> with <strong>77.8% accuracy</strong> on held-out backbone data.</p>
+        </article>
+        <article class="glass card">
+          <h3>🛡 The defense</h3>
+          <p>A privacy proxy reshapes metadata before it hits the monitored link: <strong>Laplace timing jitter</strong> (low / medium / high), <strong>128 B size padding</strong>, or <strong>MTU padding</strong> — each with measurable overhead.</p>
+        </article>
+        <article class="glass card accent">
+          <h3>⭐ Key finding</h3>
+          <p><strong>jitter_low</strong> drops test-set accuracy by 0.93 percentage points (77.77% → 76.84%) with 11 ms mean latency overhead and 0% bandwidth on the Phase 4 manifest.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section id="pipeline" class="section">
+      <div class="section-head">
+        <h2>End-to-end research pipeline</h2>
+        <p>Four reproducible phases from raw QUIC captures to Pareto-optimal defense analysis.</p>
+      </div>
+      <div id="pipeline-steps" class="pipeline-grid"></div>
+      <div class="pipeline-connector" aria-hidden="true"></div>
+    </section>
+
+    <!-- SIMULATION -->
+    <section id="simulation" class="section simulation-section">
+      <div class="section-head">
+        <h2>Interactive obfuscation demo</h2>
+        <p>
+          Visualizes how our Phase 3 obfuscator transforms packet metadata. Fingerprints below are
+          <strong>real flows</strong> from the CESNET-QUIC22 test split (W-2022-45). Accuracy and overhead
+          numbers come from the full Phase 4 evaluation on 49,305 test flows.
+        </p>
+      </div>
+
+      <div class="disclaimer-box glass" role="note">
+        <strong>What is real vs. simulated?</strong>
+        <ul>
+          <li><strong>Real (measured):</strong> charts, results table, accuracy/F1, bandwidth &amp; latency overhead — from <code>phase4/results/accuracy_results.csv</code>.</li>
+          <li><strong>Real (demo flows):</strong> packet timelines and dropdown — denormalized PPI from <code>phase1/artifacts/test_tensors.pt</code> (test week W-2022-45).</li>
+          <li><strong>Simulated:</strong> single-flow classifier panel — random outcome sampled from measured test-set accuracy, not a live model inference.</li>
+          <li><strong>Dataset:</strong> CESNET-QUIC22-XS backbone traces; train W-2022-44, test W-2022-45; 64 application classes (numeric CESNET app IDs).</li>
+        </ul>
+      </div>
+
+      <div class="sim-controls glass">
+        <label class="control-group">
+          <span>Example application fingerprint</span>
+          <select id="app-select"></select>
+        </label>
+        <div class="control-group">
+          <span>Defense mechanism</span>
+          <div id="defense-tabs" class="defense-tabs"></div>
+        </div>
+        <button type="button" id="sim-run" class="btn-primary">Re-run classifier ▶</button>
+      </div>
+
+      <p id="sim-mechanism" class="sim-mechanism glass"></p>
+      <p id="attack-flow-text" class="sim-context"></p>
+
+      <div class="stream-panel glass">
+        <div class="stream-head">
+          <h3>Live packet stream</h3>
+          <div class="stream-controls">
+            <button type="button" id="stream-play" class="btn-stream">▶ Play stream</button>
+            <span id="stream-status" class="stream-status">Select a defense and press play</span>
+          </div>
+        </div>
+        <div class="stream-stage">
+          <div class="stream-row">
+            <span class="stream-row-label">Clean flow</span>
+            <div class="stream-track-wrap">
+              <div class="stream-emitter" aria-hidden="true"></div>
+              <div id="track-clean" class="stream-track"></div>
+            </div>
+          </div>
+          <div class="stream-bridge" aria-hidden="true">
+            <svg id="stream-bridge-svg" class="stream-bridge-svg" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="stream-row obf">
+            <span class="stream-row-label" id="stream-obf-label">After defense</span>
+            <div class="stream-track-wrap">
+              <div class="stream-emitter obf" aria-hidden="true"></div>
+              <div id="track-obf" class="stream-track obf"></div>
+            </div>
+          </div>
+          <div class="stream-ruler">
+            <span id="stream-ruler-info">—</span>
+            <div class="stream-progress-wrap">
+              <div id="stream-progress" class="stream-progress"></div>
+            </div>
+          </div>
+        </div>
+        <div id="stream-effects" class="stream-effects"></div>
+      </div>
+
+      <div class="sim-layout">
+        <div class="sim-panel glass">
+          <h3>Packet metadata timeline</h3>
+          <div class="timeline-row">
+            <div class="timeline-wrap">
+              <div id="timeline-before" class="packet-timeline"></div>
+            </div>
+            <div class="timeline-arrow">→</div>
+            <div class="timeline-wrap">
+              <div id="timeline-after" class="packet-timeline after"></div>
+            </div>
+          </div>
+          <div class="sim-metrics">
+            <div><small>BW overhead (test-set mean)</small><strong id="sim-bw">0%</strong></div>
+            <div><small>Latency OH (test-set mean)</small><strong id="sim-lat">0 ms</strong></div>
+            <div><small>Test-set accuracy</small><strong id="sim-acc">77.8%</strong></div>
+            <div><small>Test-set macro F1</small><strong id="sim-f1">74.4%</strong></div>
+            <div class="metric-delta"><small>Δ accuracy vs clean</small><strong id="sim-delta">—</strong></div>
+          </div>
+        </div>
+        <div id="classifier-panel" class="sim-panel glass classifier-panel"></div>
+      </div>
+
+      <div class="sim-legend glass">
+        <span><i class="leg-bar"></i> Bar height = packet size (bytes)</span>
+        <span>↑↓ = direction (client / server)</span>
+        <span>Index 0 IPT never jittered (CESNET rule)</span>
+        <span>▶ Stream animates timing gaps (jitter) and size growth (padding)</span>
+      </div>
+    </section>
+
+    <!-- DEFENSES -->
+    <section id="defenses" class="section">
+      <div class="section-head">
+        <h2>Defense mechanisms explained</h2>
+        <p>Click a card to load it in the simulator above.</p>
+      </div>
+      <div id="defense-grid" class="defense-grid"></div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" class="section">
+      <div class="section-head">
+        <h2>Experimental results</h2>
+        <p>Transformer attacker · 49,305 test flows · temporal holdout W-2022-45 · chance baseline 1.56%</p>
+      </div>
+
+      <div id="results-highlights" class="results-highlights"></div>
+
+      <div class="charts-grid">
+        <div class="chart-card glass"><canvas id="chart-accuracy"></canvas></div>
+        <div class="chart-card glass"><canvas id="chart-pareto"></canvas></div>
+        <div class="chart-card glass"><canvas id="chart-architecture"></canvas></div>
+        <div class="chart-card glass wide"><canvas id="chart-ablation"></canvas></div>
+      </div>
+
+      <div class="results-table-wrap glass">
+        <h3>Full results table</h3>
+        <p class="table-source">Source: Phase 4 evaluation on CESNET-QUIC22-XS test week W-2022-45 · masked Transformer · 49,305 flows</p>
+        <div class="table-scroll">
+          <table id="results-table" class="results-table">
+            <thead>
+              <tr>
+                <th>Defense</th>
+                <th>Accuracy</th>
+                <th>Macro F1</th>
+                <th>Δ Acc</th>
+                <th>BW OH</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="takeaways-grid" class="takeaways-grid"></div>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Section navigation">
+    <a href="#hero">Home</a>
+    <a href="#simulation">Demo</a>
+    <a href="#defenses">Defenses</a>
+    <a href="#results">Results</a>
+  </nav>
+
+  <footer class="site-footer">
+    <p>NPS_LAB_EL · QUIC metadata classification &amp; obfuscation · Phases 1–5</p>
+    <p class="mono">Dataset: CESNET-QUIC22-XS · Train W-2022-44 · Test W-2022-45 · Chance baseline: 1/64 = 1.56%</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/demo_flows.js"></script>
+  <script defer src="js/app.js"></script>
+</body>
+</html>

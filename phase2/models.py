@@ -68,6 +68,22 @@ class PositionalEncoding(nn.Module):
         return x + self.pe[:, : x.size(1)]
 
 
+def padding_mask_from_input(x: torch.Tensor) -> torch.Tensor:
+    """
+    x: (B, 3, 30). DIR channel (row 1): 0 = padding, +/-1 = real packet.
+    Returns (B, 30) bool mask with True on padded positions (for TransformerEncoder).
+    """
+    dir_ch = x[:, 1, :]
+    return dir_ch.abs() < 0.5
+
+
+def masked_mean_pool(x: torch.Tensor, pad_mask: torch.Tensor) -> torch.Tensor:
+    """x: (B, L, D), pad_mask: (B, L) True where padded."""
+    valid = (~pad_mask).float().unsqueeze(-1)  # (B, L, 1)
+    denom = valid.sum(dim=1).clamp_min(1.0)
+    return (x * valid).sum(dim=1) / denom
+
+
 class TransformerClassifier(nn.Module):
     """
     Input:  (B, 3, 30)
@@ -84,9 +100,11 @@ class TransformerClassifier(nn.Module):
         num_layers: int = 4,
         ff_dim: int = 256,
         dropout: float = 0.2,
+        use_padding_mask: bool = False,
     ):
         super().__init__()
         self.seq_len = seq_len
+        self.use_padding_mask = use_padding_mask
         self.input_proj = nn.Linear(in_channels, d_model)
         self.pos_encoder = PositionalEncoding(d_model=d_model, max_len=seq_len)
         enc_layer = nn.TransformerEncoderLayer(
@@ -105,19 +123,46 @@ class TransformerClassifier(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (B, 3, 30) -> (B, 30, 3)
+        pad_mask = padding_mask_from_input(x) if self.use_padding_mask else None
         x = x.transpose(1, 2)
         x = self.input_proj(x)
         x = self.pos_encoder(x)
-        x = self.encoder(x)
+        if pad_mask is not None:
+            x = self.encoder(x, src_key_padding_mask=pad_mask)
+        else:
+            x = self.encoder(x)
         x = self.norm(x)
-        pooled = x.mean(dim=1)
+        if pad_mask is not None:
+            pooled = masked_mean_pool(x, pad_mask)
+        else:
+            pooled = x.mean(dim=1)
         return self.fc(self.dropout(pooled))
 
 
-def build_model(model_name: str, num_classes: int) -> nn.Module:
+def build_model(
+    model_name: str,
+    num_classes: int,
+    d_model: int = 128,
+    nhead: int = 8,
+    num_layers: int = 4,
+    ff_dim: int = 256,
+    dropout: float = 0.2,
+    use_padding_mask: bool = False,
+) -> nn.Module:
     model_name = model_name.lower()
     if model_name == "cnn_bilstm":
         return CNNBiLSTMClassifier(num_classes=num_classes)
-    if model_name == "transformer":
-        return TransformerClassifier(num_classes=num_classes)
-    raise ValueError(f"Unsupported model '{model_name}'. Use one of: cnn_bilstm, transformer")
+    if model_name in ("transformer", "transformer_masked"):
+        return TransformerClassifier(
+            num_classes=num_classes,
+            d_model=d_model,
+            nhead=nhead,
+            num_layers=num_layers,
+            ff_dim=ff_dim,
+            dropout=dropout,
+            use_padding_mask=(use_padding_mask or model_name == "transformer_masked"),
+        )
+    raise ValueError(
+        f"Unsupported model '{model_name}'. "
+        "Use: cnn_bilstm, transformer, transformer_masked"
+    )

@@ -1,0 +1,33 @@
+% !TeX root = ../main.tex
+\section{Related Work}
+\label{sec:related}
+
+\textbf{Encrypted traffic classification.}
+Early work inferred application behavior from flow statistics and hand-crafted
+features~\cite{wright2009,anderson2016}. Deep learning replaced manual feature design
+with end-to-end models over packet sequences---1D CNNs, recurrent networks, and
+attention-based encoders~\cite{wang2017,rezaei2019,traffic_survey,transformer_traffic,vaswani2017}.
+QUIC-specific backbone datasets such as CESNET-QUIC22 enable realistic evaluation
+rather than synthetic traces~\cite{cesnet_quic22,ring2019}.
+
+\textbf{Traffic morphing and obfuscation.}
+Defenses include padding to fixed sizes, adaptive packet scheduling, dummy traffic,
+and record-level padding in TLS/QUIC stacks~\cite{rfc9001,dyer2012}. Website
+fingerprinting literature formalized attack--defense tradeoffs for morphing
+proxies~\cite{walkie_talkie,hayes2016}. Our work focuses on \emph{deterministic},
+proxy-realizable transforms---linear block padding, MTU padding, and Laplace timing
+jitter---whose overhead can be measured directly from transformed traces.
+
+\textbf{Privacy--utility tradeoffs.}
+Prior studies often report accuracy drops without joint analysis of bandwidth/latency
+cost~\cite{shusterman2021}. We adopt multi-objective framing and compute
+Pareto-efficient operating points, reporting bootstrap confidence intervals and paired
+significance tests~\cite{efron1993,mcnemar1947}.
+
+\textbf{Gap.}
+Few works jointly (i) evaluate modern QUIC backbone data, (ii) compare Transformer
+vs.\ CNN sequence models under identical obfuscation, and (iii) report formal Pareto
+frontiers with statistical confidence on held-out temporal test data. We address this
+gap with a fully scripted open pipeline.
+
+%==============================================================================

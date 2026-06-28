@@ -1,0 +1,14 @@
+{
+  "experiment_a": "baseline",
+  "experiment_b": "obfuscated_jitter_low",
+  "comparison": "baseline_vs_obfuscated_jitter_low",
+  "accuracy_diff_mean": 0.009325839164384949,
+  "accuracy_diff_ci_low": 0.007382618395700311,
+  "accuracy_diff_ci_high": 0.011195619105567326,
+  "fraction_a_better": 1.0,
+  "n_bootstrap": 2000,
+  "mcnemar_b": 1373,
+  "mcnemar_c": 913,
+  "mcnemar_n_discordant": 2286,
+  "mcnemar_p_value": 5.83226966555765e-22
+}

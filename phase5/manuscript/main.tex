@@ -1,0 +1,67 @@
+% NPS LAB EL — IEEE conference manuscript (TeXstudio / local MiKTeX)
+% !TeX program = pdflatex
+% !TeX encoding = UTF-8
+%
+% Master file: open this in TeXstudio → right-click → Set as Master Document → F6.
+% Edit section text in sections/*.tex; PNG plots in figures/; TikZ in figures/tikz/.
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{tabularx}
+\usepackage[hyphens]{url}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  frame=single,
+  framerule=0.4pt
+}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{balance}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, decorations.pathreplacing}
+
+\graphicspath{{figures/}}
+
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black}
+
+\begin{document}
+
+\title{Deterministic Metadata Obfuscation against Deep Learning QUIC Traffic Classification: A Privacy--Cost Pareto Study on Backbone Traces}
+
+\author{
+\IEEEauthorblockN{Abhijat Bhat, Aditya Narayan, Akash Sivaprasath}
+\IEEEauthorblockA{\textit{Department of Computer Science and Engineering, RV College of Engineering}\\
+Bengaluru, India}
+}
+
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/threat_model}
+\input{sections/methodology}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\appendices
+\input{sections/appendix_repro}
+
+\balance
+\end{document}

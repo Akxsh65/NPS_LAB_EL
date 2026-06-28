@@ -1,0 +1,219 @@
+% !TeX root = ../main.tex
+\section{Results}
+\label{sec:results}
+
+All numbers below refer to the masked Transformer on the held-out test week unless
+Table~\ref{tab:arch} states otherwise.
+
+\subsection{Overall privacy--cost tradeoff}
+
+Table~\ref{tab:main_results} summarizes macro F1 (with accuracy in parentheses),
+privacy loss ($\Delta$ macro F1 vs.\ baseline), and manifest overhead. Clean baseline
+achieves 74.4\% macro F1. Timing jitter monotonically reduces inferability with
+increasing latency cost and \emph{zero} bandwidth expansion. \emph{jitter\_low} loses
+only 1.7 percentage points of macro F1 while \emph{jitter\_high} loses 26.8 points at
+221\,ms latency. Linear-128 padding alone reduces macro F1 by 12.4 points at 17.4\%
+bandwidth cost; MTU padding collapses classification to near chance (0.3\% macro F1)
+at 274\% bandwidth overhead.
+
+\begin{table}[t]
+  \centering
+  \caption{Transformer test results: macro F1 (accuracy), privacy loss, and overhead.}
+  \label{tab:main_results}
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{adjustbox}{max width=\columnwidth}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Setting & F1 (Acc) & $\Delta$F1 & BW\% & Lat(ms) \\
+    \midrule
+    baseline & 74.4 (77.8) & 0.0 & 0.0 & 0.0 \\
+    jitter\_high & 47.7 (54.7) & 26.8 & 0.0 & 220.8 \\
+    jitter\_low & 72.7 (76.8) & 1.7 & 0.0 & 11.0 \\
+    jitter\_med & 63.0 (68.8) & 11.4 & 0.0 & 55.2 \\
+    linear128 & 62.0 (59.1) & 12.4 & 17.4 & 0.0 \\
+    lin128+j\_med & 50.0 (52.3) & 24.4 & 17.4 & 55.2 \\
+    mtu & 0.3 (2.1) & 74.1 & 274.0 & 0.0 \\
+    mtu+j\_med & 0.4 (3.0) & 74.0 & 274.0 & 55.2 \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}
+\end{table}
+
+Fig.~\ref{fig:macro_f1} visualizes macro F1 across settings with a chance baseline at
+1.56\%. The recommended deployable point \emph{jitter\_low} is highlighted in the
+plotting pipeline.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{macro_f1_comparison_bars}
+  \caption{Macro F1 by defense setting (Transformer, test week). Horizontal line:
+  chance level ($1/64$). Star marks \emph{jitter\_low}.}
+  \label{fig:macro_f1}
+\end{figure}
+
+\subsection{Pareto frontiers}
+
+On the \textbf{latency--accuracy} plane (Fig.~\ref{fig:pareto_lat}), jitter tiers form
+a clear frontier from \emph{jitter\_low} to \emph{jitter\_high}: higher latency buys
+substantially lower accuracy. Combined padding+jitter points lie off the jitter-only
+frontier when latency is held low.
+
+On the \textbf{bandwidth--accuracy} plane (Fig.~\ref{fig:pareto_bw}), all jitter
+settings share 0\% bandwidth overhead; formally, only \emph{jitter\_high} and
+\emph{linear128\_jitter\_medium} are non-dominated among non-MTU policies. Because
+jitter tiers are tied on bandwidth, we treat latency as the operative cost axis for
+timing defenses (Section~\ref{sec:discussion}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{pareto_latency_accuracy_practical}
+  \caption{Latency overhead vs.\ accuracy (practical view, MTU excluded).}
+  \label{fig:pareto_lat}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{pareto_bw_accuracy_practical}
+  \caption{Bandwidth overhead vs.\ accuracy (practical view). Jitter tiers overlap at
+  0\% bandwidth.}
+  \label{fig:pareto_bw}
+\end{figure}
+
+Fig.~\ref{fig:dual_metric} ranks settings by a dual privacy--cost score used in our
+plotting scripts; \emph{jitter\_low} ranks among the best latency-bounded options.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{dual_metric_top5_bars}
+  \caption{Top-five settings under combined privacy--cost ranking.}
+  \label{fig:dual_metric}
+\end{figure}
+
+\subsection{Statistical significance of \emph{jitter\_low}}
+
+Table~\ref{tab:bootstrap} lists bootstrap 95\% confidence intervals (2000
+resamples, $n=49{,}305$ test flows). For \emph{jitter\_low}, macro F1 lies in
+$[72.0\%, 73.4\%]$ and accuracy in $[76.5\%, 77.2\%]$. Paired comparison to
+baseline gives mean accuracy drop 0.93 percentage points (95\% CI $[0.74, 1.12]$).
+McNemar's test on discordant pairs ($b{=}1373$, $c{=}913$) yields
+$p \approx 5.8\times10^{-22}$---the drop is statistically significant but modest
+compared with stronger defenses.
+
+\begin{table}[t]
+  \centering
+  \caption{Bootstrap 95\% CIs for selected settings (Transformer).}
+  \label{tab:bootstrap}
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{adjustbox}{max width=\columnwidth}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Setting & Acc & Acc CI & F1 & F1 CI \\
+    \midrule
+    baseline & 77.8\% & 77.4--78.1 & 74.4\% & 73.7--75.0 \\
+    jitter\_low & 76.8\% & 76.5--77.2 & 72.7\% & 72.0--73.4 \\
+    jitter\_med & 68.8\% & 68.4--69.2 & 63.0\% & 62.2--63.7 \\
+    jitter\_high & 54.7\% & 54.3--55.1 & 47.7\% & 46.9--48.3 \\
+    mtu & 2.1\% & 2.0--2.3 & 0.3\% & 0.27--0.32 \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}
+\end{table}
+
+\subsection{Architecture comparison}
+
+Table~\ref{tab:arch} and Figs.~\ref{fig:arch}--\ref{fig:confusion} summarize CNN-BiLSTM vs.\
+Transformer behavior. On clean traffic the Transformer leads by $\approx$5.0
+percentage points accuracy (77.8\% vs.\ 72.8\%). Under \emph{jitter\_low} the gap
+widens slightly ($\approx$5.9 points). Under \emph{jitter\_high} the Transformer
+retains 54.7\% accuracy vs.\ 36.0\% for BiLSTM---sequential models are more fragile
+to timing noise. Interestingly, BiLSTM exceeds Transformer accuracy on
+\emph{linear128} alone (66.8\% vs.\ 59.1\%), suggesting convolutional local filtering
+partially compensates for size quantization artifacts. Both architectures fall to
+$\approx$2--3\% accuracy under MTU padding.
+
+\begin{table}[t]
+  \centering
+  \caption{Architecture comparison on test data (accuracy / macro F1, \%).}
+  \label{tab:arch}
+  \scriptsize
+  \setlength{\tabcolsep}{2.5pt}
+  \renewcommand{\arraystretch}{1.05}
+  \begin{adjustbox}{max width=\columnwidth}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Setting & Tfm Acc & LSTM Acc & Tfm F1 & LSTM F1 \\
+    \midrule
+    baseline & 77.8 & 72.8 & 74.4 & 67.4 \\
+    jitter\_high & 54.7 & 36.0 & 47.7 & 29.6 \\
+    jitter\_low & 76.8 & 71.0 & 72.7 & 65.1 \\
+    jitter\_med & 68.8 & 57.9 & 63.0 & 50.4 \\
+    linear128 & 59.1 & 66.8 & 62.0 & 63.1 \\
+    lin128+j\_med & 52.3 & 50.6 & 50.0 & 43.9 \\
+    mtu & 2.1 & 2.9 & 0.3 & 1.6 \\
+    mtu+j\_med & 3.0 & 2.6 & 0.4 & 1.2 \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{architecture_comparison}
+  \caption{Transformer vs.\ CNN-BiLSTM accuracy across defense settings.}
+  \label{fig:arch}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[b]{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{confusion_baseline}
+    \caption{Baseline}
+    \label{fig:confusion_base}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{confusion_obfuscated_jitter_low}
+    \caption{\emph{jitter\_low}}
+    \label{fig:confusion_jlow}
+  \end{subfigure}
+  \caption{Confusion matrices (top-20 classes inset). \emph{jitter\_low} preserves
+  structure with modest spread.}
+  \label{fig:confusion}
+\end{figure}
+
+\subsection{Channel ablation}
+
+Table~\ref{tab:ablation} reports inference-time channel masking. Single-channel models
+(IPT-only or size-only) fall to near chance; direction alone reaches 3.1\% accuracy.
+The full 3-channel tensor is required for strong classification. IPT and direction
+channels are unchanged by jitter by design, yet jitter still degrades the full model,
+confirming cross-channel temporal correlation exploited by the Transformer.
+
+\begin{table}[t]
+  \centering
+  \caption{Channel ablation (Transformer accuracy, test set).}
+  \label{tab:ablation}
+  \footnotesize
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Active channels & Baseline & \emph{jitter\_low} \\
+    \midrule
+    All (IPT, DIR, SIZE) & 77.8\% & 76.8\% \\
+    IPT only & 0.17\% & 0.17\% \\
+    DIR only & 3.1\% & 3.1\% \\
+    SIZE only & 0.17\% & 0.17\% \\
+    IPT + DIR & 3.7\% & 3.7\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Per-class vulnerability}
+
+Worst-class analysis shows persistent failure modes on low-support applications (e.g.,
+classes 52, 58, 48) with F1 $<0.4$ even on clean data; \emph{jitter\_low} slightly
+degrades but does not fix these structural errors. MTU obfuscation zeroes recall for
+most classes---consistent with near-random aggregate metrics.
+
+%==============================================================================

@@ -1,0 +1,80 @@
+% !TeX root = ../main.tex
+\section{Methodology}
+\label{sec:methods}
+
+\subsection{Dataset and preprocessing}
+
+We use CESNET-QUIC22-XS~\cite{cesnet_quic22}, a public QUIC traffic corpus collected
+on a national research and education backbone. Flows are labeled by application class.
+We train on calendar week W-2022-44 and test on the subsequent week W-2022-45
+(strict temporal holdout). Rare classes with fewer than 200 training samples are
+removed, yielding 64 classes. Each flow is represented as a fixed-length tensor of
+shape $(3, 30)$ (Fig.~\ref{fig:tensor}): channel~0 is z-scored IPT (index~0 never
+jittered, following CESNET convention), channel~1 is direction, channel~2 is packet
+size normalized by MTU (1500\,B). The test set contains 49{,}305 flows.
+
+\input{figures/tikz/tensor}
+
+\subsection{End-to-end pipeline}
+
+Fig.~\ref{fig:pipeline} summarizes the experimental workflow. Phase~1 exports
+normalized tensors; Phase~2 trains attack models; Phase~3 applies obfuscators and
+logs per-flow overhead; Phase~4 evaluates frozen checkpoints and computes Pareto and
+statistical summaries.
+
+\input{figures/tikz/pipeline}
+
+\subsection{Attack models}
+
+We train two architectures to convergence on identical splits:
+\begin{itemize}
+  \item \textbf{CNN-BiLSTM:} 1D convolutions over the packet sequence followed by
+        bidirectional LSTM pooling; selected hyperparameters from a six-run sweep
+        (learning rate $10^{-3}$, batch size 1024, weight decay 0.01).
+  \item \textbf{Masked Transformer:} multi-head self-attention encoder with padding
+        mask over variable valid lengths; $d_{\mathrm{model}}=160$, trained with
+        masked loss (production checkpoint used for primary results).
+\end{itemize}
+Checkpoints are frozen before any defense evaluation. Primary metrics are
+\emph{macro-averaged F1} (class-imbalance robust) and accuracy. Chance performance
+is 1.56\% (uniform over 64 classes).
+
+\subsection{Obfuscation policies}
+
+Obfuscators apply deterministic transforms with logged per-flow overhead:
+\begin{itemize}
+  \item \textbf{Jitter} (low / medium / high): add Laplace-distributed delay to
+        packets with index $>0$; zero bandwidth cost, mean latency overhead 11\,ms,
+        55\,ms, and 221\,ms respectively on the test manifest.
+  \item \textbf{Linear-128:} round each packet size up to the next 128\,B block
+        ($\approx$17.4\% mean bandwidth overhead).
+  \item \textbf{Linear-128 + jitter\_medium:} compose padding and moderate jitter.
+  \item \textbf{MTU:} pad every packet to 1500\,B ($\approx$274\% bandwidth overhead);
+        MTU + jitter\_medium combines both mechanisms.
+\end{itemize}
+Seven obfuscated test tensors plus a clean baseline are evaluated by reloading weights
+without retraining---modeling a defender who deploys obfuscation against a fixed,
+already-trained attacker. Fig.~\ref{fig:obfuscation} illustrates the three mechanism
+families.
+
+\input{figures/tikz/obfuscation}
+
+\subsection{Metrics and statistics}
+
+\textbf{Privacy} is reported as classifier macro F1 and accuracy on obfuscated test
+data; \textbf{cost} as mean bandwidth overhead (\%) and mean added latency (ms) from
+the obfuscation manifest.
+
+\textbf{Pareto analysis:} a setting $A$ dominates $B$ if $A$ is no worse on both cost
+and privacy loss and strictly better on at least one axis. We report frontiers for
+bandwidth--accuracy and latency--accuracy views.
+
+\textbf{Tier~C statistics:} non-parametric bootstrap ($n=2000$) yields 95\% CIs for
+F1 and accuracy~\cite{efron1993}. Paired bootstrap and McNemar's test~\cite{mcnemar1947}
+compare baseline vs.\ \emph{jitter\_low} on matched flows. Channel ablation masks
+input channels at inference without retraining.
+
+All experiments use the open-source scripts in Phases~1--4 of the accompanying
+repository; Appendix~\ref{app:repro} lists checkpoints and commands.
+
+%==============================================================================

@@ -1,0 +1,23 @@
+{
+  "padding_type": "none",
+  "jitter_scale": 1.0,
+  "seed": 42,
+  "num_flows": 49305,
+  "ipt_scaler_mean": 0.9183128149351083,
+  "ipt_scaler_std": 1.473170354930124,
+  "mean_bandwidth_overhead": 0.0,
+  "std_bandwidth_overhead": 0.0,
+  "mean_latency_overhead_ms": 11.040104694346194,
+  "std_latency_overhead_ms": 5.4468747912386055,
+  "fraction_flows_bw_increase": 0.0,
+  "max_bandwidth_overhead": 0.0,
+  "max_latency_overhead_ms": 41.154016071499086,
+  "bandwidth_p50": 0.0,
+  "bandwidth_p95": 0.0,
+  "latency_p50": 10.697356548931284,
+  "latency_p95": 20.535646785387218,
+  "output_file": "/media/rvcse22/CSERV/NPS_LAB_EL/NPS_LAB_EL/phase3/artifacts/obfuscated_jitter_low.pt",
+  "jitter_key": "low",
+  "tensor_sha256": "7109030d481109b8f58a1d176d03e64f9f55333c9024ab6da50ee4fc7018748d",
+  "labels_unchanged": true
+}

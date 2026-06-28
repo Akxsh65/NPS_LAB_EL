@@ -1,0 +1,43 @@
+% !TeX root = ../main.tex
+\section{Introduction}
+\label{sec:intro}
+
+Application-layer encryption and modern transport protocols have reduced the
+effectiveness of deep packet inspection (DPI) for identifying user activities.
+QUIC, now widely deployed for web and video services, encrypts most protocol
+headers and all payloads. Nevertheless, \emph{flow metadata}---sequence of packet
+sizes, directions, and inter-packet times (IPTs)---is still visible on backbone and
+access links. Prior work shows that machine learning models can infer application
+classes from such metadata with high accuracy, creating privacy risks for users
+behind nation-state, ISP, or enterprise monitoring.
+
+A natural defense is to route traffic through an anonymizing proxy or middlebox that
+\emph{re-shapes} metadata before it leaves the user's trust domain. Unlike
+encryption, obfuscation does not hide that a flow exists; instead it degrades the
+statistical fingerprints exploited by classifiers. The defender faces a multi-objective
+problem: maximize privacy (reduce classifier confidence) while minimizing bandwidth
+and latency overhead.
+
+This paper presents an end-to-end measurement study on the CESNET-QUIC22 backbone
+dataset~\cite{cesnet_quic22}. We make four contributions:
+\begin{enumerate}
+  \item A reproducible pipeline from raw QUIC flows to frozen deep learning attackers
+        and deterministic obfuscators, with temporal train/test separation
+        (weeks W-2022-44 / W-2022-45).
+  \item A systematic evaluation of seven obfuscation policies with manifest-derived
+        bandwidth and latency costs, plus formal Pareto dominance analysis.
+  \item Evidence that \emph{jitter\_low} is a practical operating point: $\approx$1.7
+        percentage point macro-F1 loss at 11\,ms mean latency overhead and zero
+        bandwidth expansion---validated with bootstrap confidence intervals and paired
+        significance tests.
+  \item A comparison of CNN-BiLSTM vs.\ masked Transformer robustness under the same
+        defenses, showing Transformers resist timing jitter better while both fail under
+        aggressive MTU padding.
+\end{enumerate}
+
+Section~\ref{sec:related} reviews related work. Section~\ref{sec:threat} states the
+threat model. Section~\ref{sec:methods} describes data, models, and obfuscators.
+Section~\ref{sec:results} presents results; Section~\ref{sec:discussion} discusses
+deployment implications; Section~\ref{sec:conclusion} concludes.
+
+%==============================================================================

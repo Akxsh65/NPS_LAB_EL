@@ -40,7 +40,7 @@ def plot_all(csv_path: str, out_dir: str) -> None:
     plt.axhline(baseline["accuracy"] * 100, color="green", linestyle="--", label="Baseline acc.")
     plt.xlabel("Mean bandwidth overhead (%)")
     plt.ylabel("Test accuracy (%)")
-    plt.title("Privacy vs bandwidth cost (Pareto view)")
+    plt.title("Privacy vs bandwidth cost (tradeoff scatter)")
     plt.legend()
     plt.tight_layout()
     p1 = os.path.join(out_dir, "pareto_bandwidth_accuracy.png")
@@ -73,47 +73,36 @@ def plot_all(csv_path: str, out_dir: str) -> None:
     plt.savefig(p2, dpi=150)
     plt.close()
 
-    # --- Accuracy drop bar chart ---
-    plt.figure(figsize=(10, 5))
-    order = defended.sort_values("accuracy_drop_pct", ascending=False)
-    sns.barplot(
-        data=order,
-        x="experiment",
-        y="accuracy_drop_pct",
-        color="steelblue",
-    )
-    plt.xticks(rotation=45, ha="right")
-    plt.ylabel("Accuracy drop vs baseline (%)")
-    plt.xlabel("Obfuscation setting")
-    plt.title("Classifier degradation under defense")
-    plt.tight_layout()
-    p3 = os.path.join(out_dir, "accuracy_drop_bars.png")
-    plt.savefig(p3, dpi=150)
-    plt.close()
+    print(f"Saved plots:\n  {p1}\n  {p2}")
 
-    # --- Baseline vs defended grouped bars ---
-    plot_df = df[["experiment", "accuracy"]].copy()
-    plot_df["accuracy"] *= 100
-    plt.figure(figsize=(10, 5))
-    sns.barplot(data=plot_df, x="experiment", y="accuracy", color="teal")
-    plt.xticks(rotation=45, ha="right")
-    plt.ylabel("Test accuracy (%)")
-    plt.xlabel("Setting")
-    plt.title("Baseline vs obfuscated test accuracy")
-    plt.tight_layout()
-    p4 = os.path.join(out_dir, "accuracy_comparison_bars.png")
-    plt.savefig(p4, dpi=150)
-    plt.close()
+    try:
+        from plot_publication import plot_all_publication
 
-    print(f"Saved plots:\n  {p1}\n  {p2}\n  {p3}\n  {p4}")
+        pub_paths = plot_all_publication(csv_path, out_dir)
+        print("Saved Tier A+B publication outputs:")
+        for p in pub_paths:
+            print(f"  {p}")
+    except Exception as exc:
+        print(f"Warning: publication plots failed: {exc}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate Pareto plots from results CSV")
     parser.add_argument("--csv", default=os.path.join("results", "accuracy_results.csv"))
     parser.add_argument("--out-dir", default="results")
+    parser.add_argument("--tier-a-only", action="store_true", help="Only Tier A publication plots")
+    parser.add_argument("--tier-b-only", action="store_true", help="Only Tier B accuracy bar charts")
     args = parser.parse_args()
-    plot_all(args.csv, args.out_dir)
+    if args.tier_a_only:
+        from plot_publication import plot_tier_a
+
+        plot_tier_a(args.csv, args.out_dir)
+    elif args.tier_b_only:
+        from plot_publication import plot_tier_b
+
+        plot_tier_b(args.csv, args.out_dir)
+    else:
+        plot_all(args.csv, args.out_dir)
 
 
 if __name__ == "__main__":

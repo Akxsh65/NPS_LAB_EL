@@ -80,6 +80,21 @@ For `train.py` runs (default `--out-dir ./artifacts`), saved in `./artifacts/`:
 
 For `train_all.py` and sweep runs, each run gets its own output directory.
 
+## Plot HPO sweep results
+
+After `hyperparameter_sweep.py` finishes, each run folder contains `{model}_history.csv`
+with columns: `epoch`, `lr`, `train_loss`, `train_acc`, `val_loss`, `val_acc`.
+
+```bash
+python plot_sweep_results.py --sweep-dir ./artifacts/sweeps --model transformer
+```
+
+Outputs under `./artifacts/sweeps/plots/`:
+- `sweep_summary.csv` — best/final metrics + overfitting gaps per run
+- `per_run/*_curves.png` — train vs val acc/loss, gap curves, LR schedule
+- `comparative_*.png`, `heatmap_*.png`, `train_vs_val_scatter.png`
+- `REPORT.md` — best config + interpretation notes
+
 ## Notes
 
 - Uses class-weighted cross entropy to mitigate imbalance.

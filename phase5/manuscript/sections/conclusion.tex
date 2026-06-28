@@ -1,0 +1,16 @@
+% !TeX root = ../main.tex
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a reproducible study of deterministic QUIC metadata obfuscation against
+deep learning traffic classifiers on CESNET-QUIC22 backbone data. Seven obfuscation
+policies expose a structured privacy--cost landscape: timing jitter buys privacy at
+latency cost with zero bandwidth expansion; padding buys stronger privacy at heavy
+bandwidth cost. A masked Transformer attacker achieves 74.4\% macro F1 on clean held-out
+flows; \emph{jitter\_low} preserves 72.7\% macro F1 at 11\,ms overhead---a practical
+proxy configuration supported by bootstrap and McNemar tests. Transformers outperform
+CNN-BiLSTMs under jitter, while MTU padding defeats both. Our Pareto analysis and open
+pipeline aim to support evidence-based deployment of metadata defenses in QUIC-heavy
+networks.
+
+%==============================================================================

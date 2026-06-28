@@ -386,7 +386,9 @@ correlate distant packets directly, making local timing jitter less effective.
 
 **Duration**: Week 10  
 **Hardware**: Local machine  
-**Status**: 🔲 Not started
+**Status**: ✅ Draft in `phase5/` (IEEE LaTeX + figures/tables)
+
+**Presentation frontend:** `presentation/` — interactive demo for college presentation (`python -m http.server` from repo root → `/presentation/`).
 
 ### Target Journals
 
@@ -403,8 +405,8 @@ https://www.overleaf.com/gallery/tagged/ieee-official
 1. First systematic comparison of CNN-BiLSTM vs Transformer robustness under
    deterministic obfuscation on the CESNET-QUIC22 backbone dataset
 2. Pareto-optimal operating points for real-world proxy deployment
-3. Evidence that 128-byte linear padding + moderate Laplace jitter is the
-   most practical defense for bandwidth-constrained ISP environments
+3. Evidence that **jitter_low** (11 ms latency, 0% bandwidth) is the most
+   practical defense for bandwidth-constrained ISP environments
 
 ---
 

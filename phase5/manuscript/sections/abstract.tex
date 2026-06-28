@@ -1,0 +1,27 @@
+% !TeX root = ../main.tex
+\begin{abstract}
+Encrypted transport protocols such as QUIC hide application payloads, yet flow-level
+metadata---packet sizes, directions, and inter-packet times---remain observable to
+network operators and passive adversaries. Deep learning classifiers can exploit this
+metadata to infer which application produced a flow. We study \emph{deterministic}
+metadata obfuscation as a countermeasure on real CESNET-QUIC22 backbone traces.
+Using a temporally held-out test week (49{,}305 flows, 64 application classes), we
+train and freeze two attack architectures---a masked Transformer encoder and a
+CNN-BiLSTM---and evaluate seven obfuscation policies spanning timing jitter, linear
+size padding, and MTU padding, with manifest-derived bandwidth and latency overhead.
+On a masked Transformer attacker, clean traffic yields 74.4\% macro F1 (77.8\%
+accuracy). Moderate Laplace jitter with only 11\,ms mean latency overhead
+(\emph{jitter\_low}) reduces macro F1 by 1.7 percentage points while preserving
+76.8\% accuracy; the degradation is statistically significant (McNemar
+$p \approx 5.8\times10^{-22}$) but small in magnitude. Strong jitter and MTU padding
+achieve near-random performance at very different cost points. Transformers remain
+more robust than CNN-BiLSTMs under jitter, while both architectures collapse under
+MTU obfuscation. We release a reproducible pipeline and formal Pareto analysis to
+guide proxy deployment.
+\end{abstract}
+
+\begin{IEEEkeywords}
+QUIC, traffic classification, metadata obfuscation, privacy, Pareto frontier, deep learning
+\end{IEEEkeywords}
+
+%==============================================================================

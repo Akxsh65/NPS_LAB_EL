@@ -1,0 +1,28 @@
+% !TeX root = ../main.tex
+\section{Threat Model and Assumptions}
+\label{sec:threat}
+
+\textbf{Adversary.}
+We consider a passive adversary (e.g., ISP or backbone observer) who records the
+first 30 packets of each QUIC flow and extracts three metadata channels per packet:
+normalized IPT, direction (client-to-server vs.\ server-to-client), and packet size.
+The adversary does not decrypt payloads or QUIC headers protected by TLS~\cite{rfc9000}.
+The adversary knows the feature extraction pipeline and has trained a supervised
+multi-class classifier on historical labeled data from the same network environment.
+
+\textbf{Defender.}
+The defender operates an inline proxy that applies deterministic obfuscation to
+outgoing (and optionally incoming) packets before they traverse the monitored link.
+The defender cannot hide flow existence or volume at the coarsest level; the goal is
+to reduce \emph{application-level} inferability.
+
+\textbf{Out of scope.}
+We do not model adaptive adversaries who retrain on obfuscated traces (see
+Section~\ref{sec:discussion}), active attacks, or colluding endpoints. We evaluate a
+single held-out test week; cross-network generalization is future work.
+
+\textbf{Evaluation ethics.}
+Experiments use published anonymized backbone traces under CESNET-QUIC22 terms of use;
+no live user traffic is collected in this study.
+
+%==============================================================================

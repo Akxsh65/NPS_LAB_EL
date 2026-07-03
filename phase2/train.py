@@ -6,7 +6,7 @@ import random
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 import torch
@@ -54,6 +54,8 @@ class TrainConfig:
     num_layers: int = 4
     ff_dim: int = 256
     dropout: float = 0.2
+    init_checkpoint: Optional[str] = None
+    freeze_backbone: bool = False
 
 
 def set_seed(seed: int) -> None:
@@ -103,6 +105,34 @@ def infer_num_classes(train_pt_path: str) -> int:
     data = torch.load(train_pt_path, map_location="cpu")
     y = data["y"]
     return int(y.max().item()) + 1
+
+
+def apply_backbone_freeze(model: nn.Module, model_name: str) -> None:
+    """Freeze feature extractor; leave classifier head trainable."""
+    model_name = model_name.lower()
+    if model_name == "cnn_bilstm":
+        for module in (model.conv, model.lstm):
+            for param in module.parameters():
+                param.requires_grad = False
+    elif model_name in ("transformer", "transformer_masked"):
+        for module in (model.input_proj, model.pos_encoder, model.encoder, model.norm):
+            for param in module.parameters():
+                param.requires_grad = False
+    else:
+        raise ValueError(f"freeze_backbone unsupported for model '{model_name}'")
+
+
+def load_init_checkpoint(
+    model: nn.Module,
+    init_checkpoint: str,
+    device: torch.device,
+) -> dict:
+    if not os.path.isfile(init_checkpoint):
+        raise FileNotFoundError(f"init checkpoint not found: {init_checkpoint}")
+    ckpt = torch.load(init_checkpoint, map_location=device, weights_only=False)
+    state_dict = ckpt.get("state_dict", ckpt)
+    model.load_state_dict(state_dict, strict=True)
+    return ckpt
 
 
 def compute_class_weights(train_pt_path: str, num_classes: int) -> torch.Tensor:
@@ -216,6 +246,20 @@ def run_training(cfg: TrainConfig) -> None:
         ff_dim=cfg.ff_dim,
         dropout=cfg.dropout,
     ).to(device)
+
+    if cfg.init_checkpoint:
+        init_ckpt = load_init_checkpoint(model, cfg.init_checkpoint, device)
+        init_classes = int(init_ckpt.get("num_classes", num_classes))
+        if init_classes != num_classes:
+            raise ValueError(
+                f"init checkpoint num_classes={init_classes} != train data {num_classes}"
+            )
+        print(f"Loaded init weights from {cfg.init_checkpoint}")
+        if cfg.freeze_backbone:
+            apply_backbone_freeze(model, cfg.model)
+            trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            total = sum(p.numel() for p in model.parameters())
+            print(f"Backbone frozen: {trainable:,}/{total:,} parameters trainable")
 
     class_weights = compute_class_weights(cfg.train_pt, num_classes=num_classes).to(device)
     criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=cfg.label_smoothing)
@@ -379,6 +423,17 @@ def parse_args() -> TrainConfig:
     parser.add_argument("--num-layers", type=int, default=4)
     parser.add_argument("--ff-dim", type=int, default=256)
     parser.add_argument("--dropout", type=float, default=0.2)
+    parser.add_argument(
+        "--init-checkpoint",
+        type=str,
+        default=None,
+        help="Warm-start from a saved checkpoint (fine-tuning / adaptive attacker)",
+    )
+    parser.add_argument(
+        "--freeze-backbone",
+        action="store_true",
+        help="When using --init-checkpoint, train only the classifier head",
+    )
     args = parser.parse_args()
 
     return TrainConfig(
@@ -406,6 +461,8 @@ def parse_args() -> TrainConfig:
         num_layers=args.num_layers,
         ff_dim=args.ff_dim,
         dropout=args.dropout,
+        init_checkpoint=args.init_checkpoint,
+        freeze_backbone=args.freeze_backbone,
     )
 
 

@@ -116,21 +116,49 @@
         <ul>
           <li><strong>Real (measured):</strong> charts, results table, accuracy/F1, bandwidth &amp; latency overhead — from <code>phase4/results/accuracy_results.csv</code>.</li>
           <li><strong>Real (demo flows):</strong> packet timelines and dropdown — denormalized PPI from <code>phase1/artifacts/test_tensors.pt</code> (test week W-2022-45).</li>
-          <li><strong>Simulated:</strong> single-flow classifier panel — random outcome sampled from measured test-set accuracy, not a live model inference.</li>
+          <li><strong>Classifier panel:</strong> live Transformer forward pass when <code>api_server.py</code> is running (deterministic per flow + defense); otherwise a random demo fallback.</li>
           <li><strong>Dataset:</strong> CESNET-QUIC22-XS backbone traces; train W-2022-44, test W-2022-45; 64 application classes (numeric CESNET app IDs).</li>
         </ul>
       </div>
 
       <div class="sim-controls glass">
+        <div class="sim-flow-banner" id="sim-flow-badge">
+          <span class="flow-badge-label">Test flow</span>
+          <strong id="sim-flow-index">—</strong>
+          <span class="flow-badge-of">of</span>
+          <span id="sim-flow-total">49,305</span>
+          <span class="flow-badge-sep">·</span>
+          <span id="sim-flow-app">App —</span>
+          <span class="flow-badge-sep">·</span>
+          <span id="session-accuracy" class="session-accuracy" title="Correct live inferences this session for current model + defense"></span>
+        </div>
         <label class="control-group">
-          <span>Example application fingerprint</span>
+          <span>Curated example flows</span>
           <select id="app-select"></select>
+        </label>
+        <label class="control-group">
+          <span>Attacker model</span>
+          <div id="model-tabs" class="model-tabs" role="group" aria-label="Classifier model">
+            <button type="button" class="model-tab active" data-model="transformer">Transformer</button>
+            <button type="button" class="model-tab" data-model="bilstm">CNN-BiLSTM</button>
+          </div>
         </label>
         <div class="control-group">
           <span>Defense mechanism</span>
           <div id="defense-tabs" class="defense-tabs"></div>
         </div>
-        <button type="button" id="sim-run" class="btn-primary">Re-run classifier ▶</button>
+        <div class="control-group control-group-inline">
+          <span>Load test flow by index</span>
+          <div class="flow-index-row">
+            <input type="number" id="flow-index-input" min="0" max="49304" placeholder="0 – 49304" />
+            <button type="button" id="sim-load-flow" class="btn-secondary">Load</button>
+          </div>
+        </div>
+        <button type="button" id="sim-run" class="btn-primary">Re-run inference ▶</button>
+        <button type="button" id="sim-next-test-flow" class="btn-secondary">Next test flow →</button>
+        <button type="button" id="sim-batch-verify" class="btn-secondary" title="Run N random test-set flows and compare to reported accuracy">Verify accuracy (200 flows)</button>
+        <button type="button" id="sim-next-flow" class="btn-secondary" title="Cycle 12 curated packet examples">Next curated example</button>
+        <p id="sim-run-hint" class="sim-run-hint"></p>
       </div>
 
       <p id="sim-mechanism" class="sim-mechanism glass"></p>
@@ -266,6 +294,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="js/demo_flows.js"></script>
+  <script src="js/test_flow_catalog.js"></script>
   <script defer src="js/app.js"></script>
 </body>
 </html>

@@ -10,7 +10,14 @@ PHASE3_ARTIFACTS = os.path.normpath(
 )
 
 TEST_TENSORS = os.path.join(PHASE1_ARTIFACTS, "test_tensors.pt")
+TRAIN_TENSORS = os.path.join(PHASE1_ARTIFACTS, "train_tensors.pt")
+VAL_TENSORS = os.path.join(PHASE1_ARTIFACTS, "val_tensors.pt")
 IPT_SCALER = os.path.join(PHASE1_ARTIFACTS, "ipt_scaler.pkl")
+
+# Obfuscated train/val for adaptive-adversary retraining (Phase 3 generate_obfuscated_splits.py)
+ADAPTIVE_ARTIFACTS = os.path.join(PHASE3_ARTIFACTS, "adaptive")
+ADAPTIVE_TRAIN_DIR = os.path.join(ADAPTIVE_ARTIFACTS, "train")
+ADAPTIVE_VAL_DIR = os.path.join(ADAPTIVE_ARTIFACTS, "val")
 
 SEQ_LEN = 30
 MTU = 1500.0
@@ -41,3 +48,5 @@ ATOL_IPT_PAD = 1e-4
 MAX_NAN_INF_FRACTION = 0.0
 
 os.makedirs(PHASE3_ARTIFACTS, exist_ok=True)
+os.makedirs(ADAPTIVE_TRAIN_DIR, exist_ok=True)
+os.makedirs(ADAPTIVE_VAL_DIR, exist_ok=True)

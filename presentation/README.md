@@ -3,20 +3,40 @@
 Interactive demo site for the college presentation: problem statement, 4-phase pipeline,
 **live attack/defense simulation**, defense cards, and results charts.
 
-## Run locally
+## Run locally (with live model inference)
 
-From the **repository root** (so figure paths resolve):
+**One-time setup** — if `phase1/artifacts/label_encoder.pkl` or `ipt_scaler.pkl` are missing:
 
 ```powershell
-Set-Location C:\Users\akash\Desktop\NPS_LAB_EL
+cd C:\Users\akash\Desktop\NPS_LAB_EL
+python presentation/scripts/bootstrap_artifacts.py
+```
+
+**Terminal 1 — inference API** (loads Transformer checkpoint):
+
+```powershell
+cd C:\Users\akash\Desktop\NPS_LAB_EL
+python presentation/api_server.py
+```
+
+**Terminal 2 — static site:**
+
+```powershell
+cd C:\Users\akash\Desktop\NPS_LAB_EL
 python -m http.server 8080
+```
+
+Or use the combined script:
+
+```powershell
+powershell -File presentation/scripts/run_demo.ps1
 ```
 
 Open: **http://localhost:8080/presentation/**
 
-Or open `presentation/index.html` directly in the browser — the bundled `js/app.js` works without a server.
+The status badge should say **“Live model API connected”**. The simulator classifier panel runs a real forward pass on the selected test flow (Phase 3 obfuscation + frozen Transformer).
 
-> Charts still need internet (Chart.js CDN). Simulation, defense cards, and figures work offline.
+Without the API, charts and metrics still work; the classifier panel falls back to the simulated demo.
 
 ## What's included
 
@@ -25,7 +45,7 @@ Or open `presentation/index.html` directly in the browser — the bundled `js/ap
 | **Overview** | Hero + key stats (Transformer vs BiLSTM baseline accuracy) |
 | **Problem** | Attack flow diagram (user → observer → classifier) |
 | **Pipeline** | Phases 1–4 cards |
-| **Simulation** | Pick app + defense; animated packet stream + timelines + mock classifier |
+| **Simulation** | Curated + random test flows; Python obfuscation via API; Transformer / BiLSTM toggle |
 | **Defenses** | All 8 settings with mechanism text + metrics (click → simulator) |
 | **Results** | Chart.js charts + highlight cards + full results table + takeaway cards |
 
@@ -49,7 +69,8 @@ Population accuracy/F1 and overhead come from `phase4/results/accuracy_results.c
 | Architecture chart | `phase4/architecture_comparison.csv` |
 | Channel ablation | `phase4/channel_ablation.csv` |
 | Packet timelines & fingerprint dropdown | Real test flows from `phase1/artifacts/test_tensors.pt` (via `presentation/scripts/export_demo_flows.py`) |
-| Classifier panel in simulator | **Simulated** demo; sampled from measured test-set accuracy |
+| Classifier panel in simulator | **Live** when `api_server.py` is running (Transformer or BiLSTM); otherwise simulated fallback |
+| Obfuscated packet timeline | **Python** `obfuscator.py` via `POST /flow_vis` when API is on |
 
 Obfuscation transforms in the demo mirror `phase3/obfuscator.py` (Laplace jitter 1/5/20 ms, linear-128, MTU 1500 B).
 
@@ -58,7 +79,7 @@ Obfuscation transforms in the demo mirror `phase3/obfuscator.py` (Laplace jitter
 After updating Phase 1 artifacts:
 
 ```powershell
-python presentation/scripts/export_demo_flows.py
+python presentation/scripts/export_demo_flows.py --count 12 --annotate
 ```
 
 This writes `presentation/data/demo_flows.json` and `presentation/js/demo_flows.js`.
